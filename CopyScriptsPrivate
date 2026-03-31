@@ -1,0 +1,548 @@
+-- Services
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
+local HttpService = game:GetService("HttpService")
+local player = Players.LocalPlayer
+local mouse = player:GetMouse()
+
+-- Constants
+local REQUIRED_KEY = "SkidHub49382-key-y24"
+local isMobile = UserInputService.TouchEnabled
+
+-- Create ScreenGui
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "SkidHubGUI"
+screenGui.Parent = player:WaitForChild("PlayerGui")
+screenGui.ResetOnSpawn = false
+screenGui.DisplayOrder = 999
+
+-- Main Frame (Movable for both PC and Mobile)
+local mainFrame = Instance.new("Frame")
+mainFrame.Name = "MainFrame"
+-- Larger size for mobile, slightly smaller for PC
+if isMobile then
+    mainFrame.Size = UDim2.new(0, 500, 0, 600)
+    mainFrame.Position = UDim2.new(0.5, -250, 0.5, -300)
+else
+    mainFrame.Size = UDim2.new(0, 480, 0, 520)
+    mainFrame.Position = UDim2.new(0.5, -240, 0.5, -260)
+end
+mainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 35)
+mainFrame.BackgroundTransparency = 0.05
+mainFrame.BorderSizePixel = 0
+mainFrame.ClipsDescendants = true
+mainFrame.Parent = screenGui
+
+-- Corner rounding for main frame
+local corner = Instance.new("UICorner")
+corner.CornerRadius = UDim.new(0, 12)
+corner.Parent = mainFrame
+
+-- Title Bar (for dragging - works with touch)
+local titleBar = Instance.new("Frame")
+titleBar.Name = "TitleBar"
+titleBar.Size = UDim2.new(1, 0, 0, isMobile and 50 or 40)
+titleBar.BackgroundColor3 = Color3.fromRGB(45, 45, 55)
+titleBar.BackgroundTransparency = 0.2
+titleBar.BorderSizePixel = 0
+titleBar.Parent = mainFrame
+
+local titleCorner = Instance.new("UICorner")
+titleCorner.CornerRadius = UDim.new(0, 12)
+titleCorner.Parent = titleBar
+
+-- Title Text (SkidHub)
+local titleText = Instance.new("TextLabel")
+titleText.Size = UDim2.new(1, -60, 1, 0)
+titleText.Position = UDim2.new(0, 15, 0, 0)
+titleText.BackgroundTransparency = 1
+titleText.Text = "💀 SkidHub 💀"
+titleText.TextColor3 = Color3.fromRGB(255, 100, 150)
+titleText.TextXAlignment = Enum.TextXAlignment.Left
+titleText.Font = Enum.Font.GothamSemibold
+titleText.TextSize = isMobile and 20 or 18
+titleText.Parent = titleBar
+
+-- Close Button (larger for mobile)
+local closeButton = Instance.new("TextButton")
+closeButton.Size = UDim2.new(0, isMobile and 40 or 32, 0, isMobile and 40 or 32)
+closeButton.Position = UDim2.new(1, -(isMobile and 45 or 40), 0, isMobile and 5 or 4)
+closeButton.BackgroundColor3 = Color3.fromRGB(255, 70, 70)
+closeButton.BackgroundTransparency = 0.3
+closeButton.Text = "✕"
+closeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+closeButton.Font = Enum.Font.GothamBold
+closeButton.TextSize = isMobile and 24 or 18
+closeButton.BorderSizePixel = 0
+closeButton.Parent = titleBar
+
+local closeCorner = Instance.new("UICorner")
+closeCorner.CornerRadius = UDim.new(0, 10)
+closeCorner.Parent = closeButton
+
+-- KEY SECTION
+local keyLabel = Instance.new("TextLabel")
+keyLabel.Size = UDim2.new(1, -40, 0, isMobile and 30 or 25)
+keyLabel.Position = UDim2.new(0, 20, 0, isMobile and 70 or 55)
+keyLabel.BackgroundTransparency = 1
+keyLabel.Text = "🔑 Enter License Key"
+keyLabel.TextColor3 = Color3.fromRGB(255, 200, 100)
+keyLabel.TextXAlignment = Enum.TextXAlignment.Left
+keyLabel.Font = Enum.Font.GothamBold
+keyLabel.TextSize = isMobile and 16 or 14
+keyLabel.Parent = mainFrame
+
+-- Key Input Box (larger for mobile)
+local keyBox = Instance.new("TextBox")
+keyBox.Size = UDim2.new(1, -40, 0, isMobile and 55 or 45)
+keyBox.Position = UDim2.new(0, 20, 0, isMobile and 105 or 85)
+keyBox.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
+keyBox.Text = ""
+keyBox.PlaceholderText = "Enter key here..."
+keyBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+keyBox.PlaceholderColor3 = Color3.fromRGB(120, 120, 130)
+keyBox.Font = Enum.Font.Gotham
+keyBox.TextSize = isMobile and 16 or 14
+keyBox.TextXAlignment = Enum.TextXAlignment.Left
+keyBox.ClearTextOnFocus = false
+keyBox.BorderSizePixel = 0
+keyBox.Parent = mainFrame
+
+local keyInputCorner = Instance.new("UICorner")
+keyInputCorner.CornerRadius = UDim.new(0, 10)
+keyInputCorner.Parent = keyBox
+
+-- LINK SECTION
+local linkLabel = Instance.new("TextLabel")
+linkLabel.Size = UDim2.new(1, -40, 0, isMobile and 30 or 25)
+linkLabel.Position = UDim2.new(0, 20, 0, isMobile and 180 or 150)
+linkLabel.BackgroundTransparency = 1
+linkLabel.Text = "🌐 Enter Raw Link"
+linkLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
+linkLabel.TextXAlignment = Enum.TextXAlignment.Left
+linkLabel.Font = Enum.Font.Gotham
+linkLabel.TextSize = isMobile and 16 or 14
+linkLabel.Parent = mainFrame
+
+-- Link Input Box
+local linkBox = Instance.new("TextBox")
+linkBox.Size = UDim2.new(1, -40, 0, isMobile and 55 or 45)
+linkBox.Position = UDim2.new(0, 20, 0, isMobile and 215 or 180)
+linkBox.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
+linkBox.Text = ""
+linkBox.PlaceholderText = "https://example.com/script.lua"
+linkBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+linkBox.PlaceholderColor3 = Color3.fromRGB(120, 120, 130)
+linkBox.Font = Enum.Font.Gotham
+linkBox.TextSize = isMobile and 16 or 14
+linkBox.TextXAlignment = Enum.TextXAlignment.Left
+linkBox.ClearTextOnFocus = false
+linkBox.BorderSizePixel = 0
+linkBox.Parent = mainFrame
+linkBox.Active = false
+
+local linkInputCorner = Instance.new("UICorner")
+linkInputCorner.CornerRadius = UDim.new(0, 10)
+linkInputCorner.Parent = linkBox
+
+-- WARNING SECTION
+local warningFrame = Instance.new("Frame")
+warningFrame.Size = UDim2.new(1, -40, 0, isMobile and 110 or 95)
+warningFrame.Position = UDim2.new(0, 20, 0, isMobile and 290 or 245)
+warningFrame.BackgroundColor3 = Color3.fromRGB(40, 25, 25)
+warningFrame.BackgroundTransparency = 0.3
+warningFrame.BorderSizePixel = 0
+warningFrame.Parent = mainFrame
+
+local warningCorner = Instance.new("UICorner")
+warningCorner.CornerRadius = UDim.new(0, 10)
+warningCorner.Parent = warningFrame
+
+-- Warning Icon and Text
+local warningIcon = Instance.new("TextLabel")
+warningIcon.Size = UDim2.new(0, isMobile and 35 or 30, 0, isMobile and 35 or 30)
+warningIcon.Position = UDim2.new(0, 10, 0, 8)
+warningIcon.BackgroundTransparency = 1
+warningIcon.Text = "⚠️"
+warningIcon.TextColor3 = Color3.fromRGB(255, 100, 100)
+warningIcon.TextSize = isMobile and 24 or 20
+warningIcon.Font = Enum.Font.GothamBold
+warningIcon.Parent = warningFrame
+
+local warningText = Instance.new("TextLabel")
+warningText.Size = UDim2.new(1, -50, 1, 0)
+warningText.Position = UDim2.new(0, 50, 0, 5)
+warningText.BackgroundTransparency = 1
+warningText.Text = "⚠️ WARNING: GitHub & Pastebin links will NOT work!\n\nUse direct raw links only:\n• raw.githubusercontent.com (raw only!)\n• paste.ee\n• controlc.com\n• Your own server\n\n❌ Links that return HTML/502 errors won't work!"
+warningText.TextColor3 = Color3.fromRGB(255, 180, 180)
+warningText.TextXAlignment = Enum.TextXAlignment.Left
+warningText.TextYAlignment = Enum.TextYAlignment.Top
+warningText.Font = Enum.Font.Gotham
+warningText.TextSize = isMobile and 10 or 9
+warningText.TextWrapped = true
+warningText.Parent = warningFrame
+
+-- Button Container (for side-by-side buttons on mobile)
+local buttonContainer = Instance.new("Frame")
+buttonContainer.Size = UDim2.new(1, -40, 0, isMobile and 55 or 50)
+buttonContainer.Position = UDim2.new(0, 20, 0, isMobile and 420 or 360)
+buttonContainer.BackgroundTransparency = 1
+buttonContainer.Parent = mainFrame
+
+-- Verify Key Button
+local verifyButton = Instance.new("TextButton")
+if isMobile then
+    verifyButton.Size = UDim2.new(0.48, 0, 1, 0)
+    verifyButton.Position = UDim2.new(0, 0, 0, 0)
+else
+    verifyButton.Size = UDim2.new(0, 140, 1, 0)
+    verifyButton.Position = UDim2.new(0, 0, 0, 0)
+end
+verifyButton.BackgroundColor3 = Color3.fromRGB(255, 140, 0)
+verifyButton.Text = "VERIFY KEY"
+verifyButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+verifyButton.Font = Enum.Font.GothamBold
+verifyButton.TextSize = isMobile and 14 or 12
+verifyButton.BorderSizePixel = 0
+verifyButton.Parent = buttonContainer
+
+local verifyCorner = Instance.new("UICorner")
+verifyCorner.CornerRadius = UDim.new(0, 10)
+verifyCorner.Parent = verifyButton
+
+-- Execute Button
+local executeButton = Instance.new("TextButton")
+if isMobile then
+    executeButton.Size = UDim2.new(0.48, 0, 1, 0)
+    executeButton.Position = UDim2.new(0.52, 0, 0, 0)
+else
+    executeButton.Size = UDim2.new(0, 140, 1, 0)
+    executeButton.Position = UDim2.new(1, -145, 0, 0)
+end
+executeButton.BackgroundColor3 = Color3.fromRGB(80, 80, 80)
+executeButton.Text = "EXECUTE"
+executeButton.TextColor3 = Color3.fromRGB(150, 150, 150)
+executeButton.Font = Enum.Font.GothamBold
+executeButton.TextSize = isMobile and 14 or 12
+executeButton.BorderSizePixel = 0
+executeButton.Parent = buttonContainer
+executeButton.Active = false
+
+local execCorner = Instance.new("UICorner")
+execCorner.CornerRadius = UDim.new(0, 10)
+execCorner.Parent = executeButton
+
+-- Status Label
+local statusLabel = Instance.new("TextLabel")
+statusLabel.Size = UDim2.new(1, -40, 0, isMobile and 70 or 60)
+statusLabel.Position = UDim2.new(0, 20, 0, isMobile and 485 or 425)
+statusLabel.BackgroundTransparency = 1
+statusLabel.Text = "Waiting for key..."
+statusLabel.TextColor3 = Color3.fromRGB(150, 150, 150)
+statusLabel.TextXAlignment = Enum.TextXAlignment.Center
+statusLabel.TextYAlignment = Enum.TextYAlignment.Top
+statusLabel.Font = Enum.Font.Gotham
+statusLabel.TextSize = isMobile and 12 or 11
+statusLabel.TextWrapped = true
+statusLabel.Parent = mainFrame
+
+-- Key verified flag
+local keyVerified = false
+
+-- Helper: Update status
+local function setStatus(text, isError, isSuccess)
+    statusLabel.Text = text
+    if isError then
+        statusLabel.TextColor3 = Color3.fromRGB(255, 80, 80)
+    elseif isSuccess then
+        statusLabel.TextColor3 = Color3.fromRGB(100, 255, 100)
+    else
+        statusLabel.TextColor3 = Color3.fromRGB(150, 150, 150)
+    end
+end
+
+local function showDone()
+    setStatus("✅ Done! Script copied to clipboard ✅", false, true)
+end
+
+-- Kick function
+local function kickPlayer(reason)
+    setStatus(reason, true, false)
+    task.wait(1)
+    player:Kick(reason)
+end
+
+-- Verify key
+local function verifyKey()
+    local inputKey = keyBox.Text
+    if inputKey == "" then
+        setStatus("Please enter a key!", true, false)
+        return false
+    end
+    
+    if inputKey == REQUIRED_KEY then
+        keyVerified = true
+        setStatus("✅ Key verified! You can now enter a link.", false, true)
+        
+        linkBox.Active = true
+        linkBox.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
+        executeButton.Active = true
+        executeButton.BackgroundColor3 = Color3.fromRGB(0, 120, 255)
+        executeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+        executeButton.Text = "EXECUTE"
+        
+        verifyButton.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+        verifyButton.Text = "✓ VERIFIED"
+        verifyButton.Active = false
+        
+        return true
+    else
+        kickPlayer("Key isn't correct! Try again later.")
+        return false
+    end
+end
+
+-- Check if response is valid (not HTML error)
+local function isValidContent(content)
+    -- Check if content is HTML error page
+    if string.find(content, "<html") or string.find(content, "<!DOCTYPE") then
+        if string.find(content, "502") or string.find(content, "Bad Gateway") or 
+           string.find(content, "404") or string.find(content, "Not Found") or
+           string.find(content, "403") or string.find(content, "Forbidden") then
+            return false, "Server error: Link returned HTML error page"
+        end
+    end
+    
+    -- Check if content is too short or suspicious
+    if #content < 10 then
+        return false, "Content too short or empty"
+    end
+    
+    return true, "Valid"
+end
+
+-- Check blocked domains
+local function isBlockedDomain(link)
+    local blockedDomains = {
+        "pastebin.com",
+        "github.com",
+        "raw.github.com",
+        "gist.github.com",
+        "youtube.com",
+        "google.com"
+    }
+    
+    local lowerLink = string.lower(link)
+    for _, domain in ipairs(blockedDomains) do
+        if string.find(lowerLink, domain) then
+            return true
+        end
+    end
+    return false
+end
+
+-- Execute link with better error handling
+local function executeLink()
+    if not keyVerified then
+        setStatus("Please verify your key first!", true, false)
+        return
+    end
+    
+    local rawLink = linkBox.Text
+    if rawLink == "" then
+        setStatus("Please enter a link!", true, false)
+        return
+    end
+    
+    if isBlockedDomain(rawLink) then
+        setStatus("❌ GitHub/Pastebin not supported! Use raw links only.", true, false)
+        return
+    end
+    
+    if not (rawLink:sub(1, 7) == "http://" or rawLink:sub(1, 8) == "https://") then
+        setStatus("Invalid link! Use http:// or https://", true, false)
+        return
+    end
+    
+    setStatus("📡 Fetching content from link...", false, false)
+    
+    -- Attempt to fetch content with timeout handling
+    local success, content = pcall(function()
+        return game:HttpGet(rawLink)
+    end)
+    
+    if not success then
+        setStatus("❌ Failed to fetch! Link may be invalid or blocked.", true, false)
+        return
+    end
+    
+    if not content or content == "" then
+        setStatus("❌ Empty response from server!", true, false)
+        return
+    end
+    
+    -- Validate content isn't an error page
+    local valid, errorMsg = isValidContent(content)
+    if not valid then
+        setStatus("❌ " .. errorMsg, true, false)
+        return
+    end
+    
+    setStatus("📋 Copying to clipboard...", false, false)
+    
+    -- Copy content to clipboard
+    local clipboardSuccess, clipboardError = pcall(function()
+        setclipboard(content)
+    end)
+    
+    if clipboardSuccess then
+        setStatus("✅ Script copied to clipboard! (" .. #content .. " bytes) ✅", false, true)
+        showDone()
+    else
+        setStatus("❌ Clipboard failed: " .. tostring(clipboardError), true, false)
+    end
+end
+
+-- Animate button (touch-friendly)
+local function animateButton(btn)
+    if not btn.Active and btn ~= verifyButton then return end
+    local originalSize = btn.Size
+    local tween = TweenService:Create(btn, TweenInfo.new(0.08, Enum.EasingStyle.Quad), {Size = UDim2.new(originalSize.X.Scale, originalSize.X.Offset - 3, originalSize.Y.Scale, originalSize.Y.Offset - 3)})
+    tween:Play()
+    tween.Completed:Wait()
+    local tweenBack = TweenService:Create(btn, TweenInfo.new(0.08, Enum.EasingStyle.Quad), {Size = originalSize})
+    tweenBack:Play()
+end
+
+-- Touch/Drag handling for mobile
+local dragging = false
+local dragStart = Vector2.new()
+local startPos = Vector2.new()
+
+titleBar.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        dragging = true
+        dragStart = Vector2.new(input.Position.X, input.Position.Y)
+        startPos = Vector2.new(mainFrame.Position.X.Offset, mainFrame.Position.Y.Offset)
+    end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+    if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+        local delta = Vector2.new(input.Position.X, input.Position.Y) - dragStart
+        local newX = startPos.X + delta.X
+        local newY = startPos.Y + delta.Y
+        mainFrame.Position = UDim2.new(0, newX, 0, newY)
+    end
+end)
+
+UserInputService.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        dragging = false
+    end
+end)
+
+-- Button connections
+verifyButton.MouseButton1Click:Connect(function()
+    animateButton(verifyButton)
+    verifyKey()
+end)
+
+executeButton.MouseButton1Click:Connect(function()
+    if executeButton.Active and keyVerified then
+        animateButton(executeButton)
+        executeLink()
+    end
+end)
+
+-- Touch for mobile
+verifyButton.TouchTap:Connect(function()
+    animateButton(verifyButton)
+    verifyKey()
+end)
+
+executeButton.TouchTap:Connect(function()
+    if executeButton.Active and keyVerified then
+        animateButton(executeButton)
+        executeLink()
+    end
+end)
+
+-- Close button
+closeButton.MouseButton1Click:Connect(function()
+    screenGui:Destroy()
+end)
+
+closeButton.TouchTap:Connect(function()
+    screenGui:Destroy()
+end)
+
+-- Enter key handling
+keyBox.FocusLost:Connect(function(enterPressed)
+    if enterPressed then
+        verifyKey()
+    end
+end)
+
+linkBox.FocusLost:Connect(function(enterPressed)
+    if enterPressed and keyVerified then
+        executeLink()
+    end
+end)
+
+-- Hover effects (only on PC)
+if not isMobile then
+    executeButton.MouseEnter:Connect(function()
+        if executeButton.Active and keyVerified then
+            TweenService:Create(executeButton, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(0, 100, 220)}):Play()
+        end
+    end)
+    executeButton.MouseLeave:Connect(function()
+        if executeButton.Active and keyVerified then
+            TweenService:Create(executeButton, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(0, 120, 255)}):Play()
+        end
+    end)
+    
+    verifyButton.MouseEnter:Connect(function()
+        if verifyButton.Active then
+            TweenService:Create(verifyButton, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(220, 120, 0)}):Play()
+        end
+    end)
+    verifyButton.MouseLeave:Connect(function()
+        if verifyButton.Active then
+            TweenService:Create(verifyButton, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(255, 140, 0)}):Play()
+        end
+    end)
+    
+    closeButton.MouseEnter:Connect(function()
+        TweenService:Create(closeButton, TweenInfo.new(0.15), {BackgroundTransparency = 0}):Play()
+    end)
+    closeButton.MouseLeave:Connect(function()
+        TweenService:Create(closeButton, TweenInfo.new(0.15), {BackgroundTransparency = 0.3}):Play()
+    end)
+end
+
+-- Initial status
+setStatus("🔑 Enter the license key to continue...", false, false)
+
+-- Mobile keyboard handling
+if isMobile then
+    keyBox.Focused:Connect(function()
+        task.wait(0.5)
+        mainFrame.Position = UDim2.new(0, mainFrame.Position.X.Offset, 0, mainFrame.Position.Y.Offset - 150)
+    end)
+    
+    keyBox.FocusLost:Connect(function()
+        mainFrame.Position = UDim2.new(0, mainFrame.Position.X.Offset, 0, startPos.Y)
+    end)
+    
+    linkBox.Focused:Connect(function()
+        task.wait(0.5)
+        mainFrame.Position = UDim2.new(0, mainFrame.Position.X.Offset, 0, mainFrame.Position.Y.Offset - 150)
+    end)
+    
+    linkBox.FocusLost:Connect(function()
+        mainFrame.Position = UDim2.new(0, mainFrame.Position.X.Offset, 0, startPos.Y)
+    end)
+end
